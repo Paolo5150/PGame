@@ -8,18 +8,23 @@ public class Player : MonoBehaviour
     public float JumpForce = 20;
     public float RaycastDistance = 1;
     public float LinearDamping = 10;
+    public float BulletSpeed = 5.0f;
     public LayerMask GroundLayer;
+    public GameObject BulletPrefab;
 
     private Rigidbody m_rigidbody;
 
     private int m_groundLayer;
     public bool m_isGrounded;
+
+    private GameObject m_shootingPoint;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
        m_rigidbody = GetComponent<Rigidbody>();
        m_groundLayer = LayerMask.NameToLayer("Default");
+       m_shootingPoint = GameObject.Find("ShootingPoint");
 
     }
 
@@ -58,6 +63,13 @@ public class Player : MonoBehaviour
             m_rigidbody.AddForce(Vector3.up * JumpForce);
         }
 
+        if(Input.GetMouseButtonDown(0))
+        {
+            GameObject go = GameObject.Instantiate(BulletPrefab);
+            go.transform.position = m_shootingPoint.transform.position;
+            var rigidBody = go.GetComponent<Rigidbody>();
+            rigidBody.AddForce(transform.forward * BulletSpeed, ForceMode.Impulse);
+        }
 
 
     }
