@@ -35,7 +35,9 @@ public class Enemy : MonoBehaviour
     {
         PATROLLING,
         CHASING,
-        ATTACKING
+        ATTACKING,
+        DIE,
+        INVESTIGATE
     }
 
     EnemyStates m_enemyState;

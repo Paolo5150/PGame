@@ -32,14 +32,26 @@ public class Player : MonoBehaviour
     void Update()
     {
         // Rotation of player
-        float mouseX = Input.GetAxis("Mouse X") * Time.deltaTime;
-        transform.RotateAround(Vector3.up, mouseX * RotationSpeed);
-
-
+     
         //Movement
         if (Input.GetKey(KeyCode.W))
         {
             m_rigidbody.AddForce(transform.forward * WalkSpeed, ForceMode.Impulse);
+        }
+
+        if (Input.GetKey(KeyCode.S))
+        {
+            m_rigidbody.AddForce(-transform.forward * WalkSpeed, ForceMode.Impulse);
+        }
+
+        if (Input.GetKey(KeyCode.D))
+        {
+            m_rigidbody.AddForce(transform.right * WalkSpeed, ForceMode.Impulse);
+        }
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            m_rigidbody.AddForce(-transform.right * WalkSpeed, ForceMode.Impulse);
         }
 
         if (m_rigidbody.linearVelocity.magnitude > MaxVelocity)
