@@ -28,36 +28,40 @@ public class Player : MonoBehaviour
 
     }
 
+    private void FixedUpdate()
+    {
+        Vector3 movementDirection = Vector3.zero;   
+
+        //Movement
+        if (Input.GetKey(KeyCode.W)) movementDirection += transform.forward;         
+        if (Input.GetKey(KeyCode.S)) movementDirection -= transform.forward;
+        if (Input.GetKey(KeyCode.D)) movementDirection += transform.right;
+        if (Input.GetKey(KeyCode.A)) movementDirection -= transform.right;
+
+        movementDirection.Normalize();
+
+        if ((movementDirection != Vector3.zero))
+        {
+            m_rigidbody.AddForce(movementDirection * WalkSpeed, ForceMode.Force);
+        }
+
+
+        Vector3 horizontalVel = new Vector3(m_rigidbody.linearVelocity.x, 0, m_rigidbody.linearVelocity.z);
+        if (horizontalVel.magnitude > MaxVelocity)
+        {
+            horizontalVel = horizontalVel.normalized * MaxVelocity;
+            m_rigidbody.linearVelocity = new Vector3(horizontalVel.x, m_rigidbody.linearVelocity.y, horizontalVel.z);
+        }
+
+
+
+
+    }
+
     // Update is called once per frame
     void Update()
     {
         // Rotation of player
-     
-        //Movement
-        if (Input.GetKey(KeyCode.W))
-        {
-            m_rigidbody.AddForce(transform.forward * WalkSpeed, ForceMode.Impulse);
-        }
-
-        if (Input.GetKey(KeyCode.S))
-        {
-            m_rigidbody.AddForce(-transform.forward * WalkSpeed, ForceMode.Impulse);
-        }
-
-        if (Input.GetKey(KeyCode.D))
-        {
-            m_rigidbody.AddForce(transform.right * WalkSpeed, ForceMode.Impulse);
-        }
-
-        if (Input.GetKey(KeyCode.A))
-        {
-            m_rigidbody.AddForce(-transform.right * WalkSpeed, ForceMode.Impulse);
-        }
-
-        if (m_rigidbody.linearVelocity.magnitude > MaxVelocity)
-        {
-            m_rigidbody.linearVelocity = m_rigidbody.linearVelocity.normalized * MaxVelocity;
-        }
 
         m_isGrounded = Physics.Raycast(transform.position, Vector3.down, RaycastDistance, GroundLayer);
 
@@ -72,17 +76,16 @@ public class Player : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space) && m_isGrounded)
         {
-            m_rigidbody.AddForce(Vector3.up * JumpForce);
+            m_rigidbody.AddForce(Vector3.up * JumpForce, ForceMode.Impulse);
         }
 
-        if(Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
         {
             GameObject go = GameObject.Instantiate(BulletPrefab);
             go.transform.position = m_shootingPoint.transform.position;
             var rigidBody = go.GetComponent<Rigidbody>();
             rigidBody.AddForce(transform.forward * BulletSpeed, ForceMode.Impulse);
         }
-
 
     }
 }

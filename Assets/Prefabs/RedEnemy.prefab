@@ -266,15 +266,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcfa524a57209eb4492298e0453fb5f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Movespeed: 4
-  EnableAI: 0
+  Movespeed: 25
+  EnableAI: 1
   SearchRadius: 500
-  SightDistance: 20
+  SightDistance: 80
   RaycastMask:
     serializedVersion: 2
     m_Bits: 65
   BulletPrefab: {fileID: 2353821239112192643, guid: 7f913917c3f5069438d9ae023e343212, type: 3}
   ShootRate: 2
+  EnemyType: 0
+  m_enemyState: 0
 --- !u!195 &6462038561131114278
 NavMeshAgent:
   m_ObjectHideFlags: 0

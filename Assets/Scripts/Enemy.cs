@@ -22,6 +22,8 @@ public class Enemy : MonoBehaviour
     private float Health = 10;
     private GameObject m_enemyShootingPoint;
     private float m_timer = 0;
+    private float m_investigateTimer = 0;
+    private Vector3 m_playerLastPosition;
 
     public enum EnemyTypes
     {
@@ -40,7 +42,7 @@ public class Enemy : MonoBehaviour
         INVESTIGATE
     }
 
-    EnemyStates m_enemyState;
+    public EnemyStates m_enemyState;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -79,6 +81,7 @@ public class Enemy : MonoBehaviour
 
     void PatrolStateBehavior()
     {
+        //Patrolling finding a random point
         Vector3 point;
         if (RandomPoint(transform.position, SearchRadius, out point) && !m_haveDestination)
         {
@@ -88,6 +91,7 @@ public class Enemy : MonoBehaviour
             Debug.DrawRay(point, Vector3.up, UnityEngine.Color.blue, 1.0f);
         }
        
+        //Set a new point when we are close enough
         if (m_haveDestination)
         {
             float distance = Vector3.Magnitude(m_destination - transform.position);
@@ -106,7 +110,10 @@ public class Enemy : MonoBehaviour
             if(hit.collider.gameObject.tag == "Player")
             {
                 if(EnemyType == EnemyTypes.RED)
-                 m_enemyState = EnemyStates.ATTACKING;
+                {
+                    m_haveDestination = false;
+                    m_enemyState = EnemyStates.ATTACKING;
+                }
             }
         }
         //If we see the player, change state to chase
@@ -114,20 +121,68 @@ public class Enemy : MonoBehaviour
 
     void AttackState()
     {
+        //Shoot the player, use timer to space out bullets
         m_timer += Time.deltaTime;
 
         m_agent.isStopped = true;
         transform.LookAt(m_player.transform.position);
 
-        if(m_timer > ShootRate)
+        m_playerLastPosition = m_player.transform.position;
+
+        if (m_timer > ShootRate)
         {
             GameObject go = GameObject.Instantiate(BulletPrefab);
             go.transform.position = m_enemyShootingPoint.transform.position;
             var rigidBody = go.GetComponent<Rigidbody>();
             rigidBody.AddForce(transform.forward * 2.0f, ForceMode.Impulse);
             m_timer = 0;
-        }      
+        }
 
+        //Raycast to the player
+        //If the player is not visible, move to investigate the player last seen position
+        Vector3 directionToPlayer = m_player.transform.position - transform.position;
+        if (Physics.Raycast(transform.position, directionToPlayer, out RaycastHit hit, SightDistance, RaycastMask))
+        {
+            if (hit.collider.gameObject.tag != "Player")
+            {
+                if (EnemyType == EnemyTypes.RED)
+                    m_enemyState = EnemyStates.INVESTIGATE;
+            }
+        }
+        else
+        {
+            if (EnemyType == EnemyTypes.RED)
+                m_enemyState = EnemyStates.INVESTIGATE;
+        }
+
+    }
+
+    void InvestigateState()
+    {
+        m_agent.SetDestination(m_playerLastPosition);
+        m_agent.isStopped = false;
+
+        if(m_agent.remainingDistance < 1)
+        {
+            m_investigateTimer += Time.deltaTime;
+            if(m_investigateTimer > 5)
+            {
+                m_investigateTimer = 0;
+                m_enemyState = EnemyStates.PATROLLING;
+            }
+        }
+
+        //Raycast to the player
+        Vector3 directionToPlayer = m_player.transform.position - transform.position;
+        Debug.DrawRay(transform.position, directionToPlayer.normalized * SightDistance, UnityEngine.Color.red);
+        if (Physics.Raycast(transform.position, directionToPlayer, out RaycastHit hit, SightDistance, RaycastMask))
+        {
+            if (hit.collider.gameObject.tag == "Player")
+            {
+                if (EnemyType == EnemyTypes.RED)
+                    m_enemyState = EnemyStates.ATTACKING;
+            }
+        }
     }
 
 
@@ -140,6 +195,9 @@ public class Enemy : MonoBehaviour
                 break;
             case EnemyStates.ATTACKING:
                 AttackState();
+                break;
+            case EnemyStates.INVESTIGATE:
+                InvestigateState();
                 break;
 
             case EnemyStates.CHASING:
